@@ -231,7 +231,7 @@ class _DepartamentoMapAppState extends State<DepartamentoMapApp> {
         child: Text(entry.value),
       );
     }).toList()
-      ..sort((a, b) => a.child.toString().compareTo(b.child.toString()));
+      ..sort((a, b) => (a.child as Text).data!.compareTo((b.child as Text).data!));
 
     // 4. Add the 'All Departamentos' option at the beginning.
     departamentoItems.insert(
