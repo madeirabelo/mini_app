@@ -1,0 +1,44 @@
+name: ForumFlumen
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  google_sign_in: ^6.3.0
+  firebase_auth: ^5.7.0
+  http: ^1.2.1
+  intl: ^0.19.0
+  yaml: ^3.1.2
+  flutter_map: ^6.1.0
+  latlong2: ^0.9.0
+  html: ^0.15.6
+
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_launcher_icons: ^0.11.0
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - users.yaml
+    - assets/argentina_boundary.geojson
+    - assets/ignprovincia.json
+    - assets/ign_departamento.json
+    - assets/ign_municipio.json
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "icon_ff.png"

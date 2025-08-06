@@ -1,0 +1,70 @@
+diff --git a/lib/src/camera.dart b/lib/src/camera.dart
+index 1234567..89abcde 100644
+--- a/lib/src/camera.dart
++++ b/lib/src/camera.dart
+@@ -1,6 +1,7 @@
+ import 'package:meta/meta.dart';
+ import 'package:mapbox_gl_platform_interface/src/location.dart';
+ import 'package:mapbox_gl_platform_interface/src/types.dart';
++import 'package:flutter/foundation.dart' show hashValues;
+ 
+ /// The position of the map camera
+ class CameraPosition {
+diff --git a/lib/src/location.dart b/lib/src/location.dart
+index 1234567..89abcde 100644
+--- a/lib/src/location.dart
++++ b/lib/src/location.dart
+@@ -1,5 +1,6 @@
+ import 'package:meta/meta.dart';
+ import 'package:mapbox_gl_platform_interface/src/types.dart';
++import 'package:flutter/foundation.dart' show hashValues;
+ 
+ /// A geographical point
+ class LatLng {
+@@ -53,7 +54,7 @@ class LatLng {
+   bool operator ==(dynamic other) {
+     return other is LatLng && latitude == other.latitude && longitude == other.longitude;
+   }
+-  int get hashCode => hashValues(latitude, longitude);
++  int get hashCode => Object.hash(latitude, longitude);
+ 
+   @override
+   String toString() => 'LatLng($latitude, $longitude)';
+@@ -106,7 +107,7 @@ class LatLngBounds {
+   bool operator ==(dynamic other) {
+     return other is LatLngBounds && southwest == other.southwest && northeast == other.northeast;
+   }
+-  int get hashCode => hashValues(southwest, northeast);
++  int get hashCode => Object.hash(southwest, northeast);
+ 
+   @override
+   String toString() => 'LatLngBounds($southwest, $northeast)';
+@@ -164,7 +165,7 @@ class LatLngQuad {
+   bool operator ==(dynamic other) {
+     return other is LatLngQuad && topLeft == other.topLeft && topRight == other.topRight && bottomRight == other.bottomRight && bottomLeft == other.bottomLeft;
+   }
+-  int get hashCode => hashValues(topLeft, topRight, bottomRight, bottomLeft);
++  int get hashCode => Object.hash(topLeft, topRight, bottomRight, bottomLeft);
+ 
+   @override
+   String toString() => 'LatLngQuad($topLeft, $topRight, $bottomRight, $bottomLeft)';
+diff --git a/lib/src/ui.dart b/lib/src/ui.dart
+index 1234567..89abcde 100644
+--- a/lib/src/ui.dart
++++ b/lib/src/ui.dart
+@@ -1,5 +1,6 @@
+ import 'package:meta/meta.dart';
+ import 'package:mapbox_gl_platform_interface/src/types.dart';
++import 'package:flutter/foundation.dart' show hashValues;
+ 
+ /// Minimum and maximum zoom levels
+ class MinMaxZoomPreference {
+@@ -143,7 +144,7 @@ class MinMaxZoomPreference {
+   bool operator ==(dynamic other) {
+     return other is MinMaxZoomPreference && minZoom == other.minZoom && maxZoom == other.maxZoom;
+   }
+-  int get hashCode => hashValues(minZoom, maxZoom);
++  int get hashCode => Object.hash(minZoom, maxZoom);
+ 
+   @override
+   String toString() => 'MinMaxZoomPreference($minZoom, $maxZoom)';
