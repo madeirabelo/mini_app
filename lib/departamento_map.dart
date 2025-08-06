@@ -242,6 +242,21 @@ class _DepartamentoMapAppState extends State<DepartamentoMapApp> {
       ),
     );
 
+    // 5. Create province dropdown items, including an "All Provinces" option.
+    List<DropdownMenuItem<Province>> provinceItems = provinces.map((province) {
+      return DropdownMenuItem<Province>(
+        value: province,
+        child: Text(province.name, style: TextStyle(fontSize: 12)),
+      );
+    }).toList();
+    provinceItems.insert(
+      0,
+      DropdownMenuItem<Province>(
+        value: null,
+        child: Text('All Provinces'),
+      ),
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Map of Argentina Departamentos'),
@@ -264,12 +279,7 @@ class _DepartamentoMapAppState extends State<DepartamentoMapApp> {
                 _zoomToSelected(_polygons);
               });
             },
-            items: provinces.map<DropdownMenuItem<Province>>((Province province) {
-              return DropdownMenuItem<Province>(
-                value: province,
-                child: Text(province.name, style: TextStyle(fontSize: 12)),
-              );
-            }).toList(),
+            items: provinceItems,
           ),
           // Department Dropdown
           Container(
