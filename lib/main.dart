@@ -8,10 +8,7 @@ import 'package:yaml/yaml.dart';
 import 'currency.dart';
 import 'smvm.dart';
 import 'dart:async';
-import 'argentina_map.dart';
-import 'argentina_province_map.dart';
-import 'departamento_map.dart';
-import 'municipio_map.dart';
+import 'maps_page.dart';
 
 // For web, the clientId is provided via meta tag in index.html
 final GoogleSignIn _googleSignIn = GoogleSignIn(
@@ -278,38 +275,11 @@ class _HomePageState extends State<HomePage> {
                     },
                   ),
                   ElevatedButton(
-                    child: Text('Argentina Map'),
+                    child: Text('Maps'),
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => ArgentinaMapApp()),
-                      );
-                    },
-                  ),
-                  ElevatedButton(
-                    child: Text('Argentina Province Map'),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => ArgentinaProvinceMapApp()),
-                      );
-                    },
-                  ),
-                  ElevatedButton(
-                    child: Text('Departamento Map'),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => DepartamentoMapApp()),
-                      );
-                    },
-                  ),
-                  ElevatedButton(
-                    child: Text('Municipio Map'),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => MunicipioMapApp()),
+                        MaterialPageRoute(builder: (context) => MapsPage()),
                       );
                     },
                   ),
