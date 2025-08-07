@@ -170,6 +170,7 @@ class _SmvmScreenState extends State<SmvmScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               ElevatedButton(
                 onPressed: () => _selectDate(context),
