@@ -47,7 +47,12 @@ class _SmvmScreenState extends State<SmvmScreen> {
     }
 
     try {
-            final response = await http.get(Uri.parse('https://proxy.cors.sh/https://infra.datos.gob.ar/catalog/sspm/dataset/57/distribution/57.1/download/indice-salario-minimo-vital-movil-valores-mensuales-pesos-corrientes-desde-1988.csv'));
+            final response = await http.get(
+        Uri.parse('https://proxy.cors.sh/https://infra.datos.gob.ar/catalog/sspm/dataset/57/distribution/57.1/download/indice-salario-minimo-vital-movil-valores-mensuales-pesos-corrientes-desde-1988.csv'),
+        headers: {
+          'x-cors-api-key': 'temp_1234567890',
+        },
+      );
       if (response.statusCode == 200) {
         final lines = utf8.decode(response.bodyBytes).split("\n");
         if (lines.length > 1) {
