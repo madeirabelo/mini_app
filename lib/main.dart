@@ -292,6 +292,7 @@ class _HomePageState extends State<HomePage> {
                       );
                     },
                   ),
+                  SizedBox(height: 20),
                   ElevatedButton(
                     child: Text('SMVM'),
                     onPressed: () {
@@ -301,6 +302,7 @@ class _HomePageState extends State<HomePage> {
                       );
                     },
                   ),
+                  SizedBox(height: 20),
                   ElevatedButton(
                     child: Text('Maps'),
                     onPressed: () {
