@@ -50,26 +50,9 @@ class _SmvmScreenState extends State<SmvmScreen> {
       dateToFetch = DateTime(dateToFetch.year, dateToFetch.month, 1);
     }
 
-    http.Response? response;
-    final String originalUrl = 'https://infra.datos.gob.ar/catalog/sspm/dataset/57/distribution/57.1/download/indice-salario-minimo-vital-movil-valores-mensuales-pesos-corrientes-desde-1988.csv';
-
-    for (String proxy in _corsProxies) {
-      try {
-        String url = proxy.endsWith('=') ? '$proxy$originalUrl' : '$proxy$originalUrl';
-        print("Trying proxy: $url");
-        response = await http.get(Uri.parse(url));
-        if (response.statusCode == 200) {
-          print("Proxy successful: $proxy");
-          break;
-        }
-      } catch (e) {
-        print("Proxy failed: $proxy. Error: $e");
-        continue;
-      }
-    }
-
-    if (response != null && response.statusCode == 200) {
-      final lines = utf8.decode(response.bodyBytes).split("\n");
+    try {
+      final String data = await rootBundle.loadString('assets/smvm_data.csv');
+      final lines = data.split("\n");
       if (lines.length > 1) {
         List<String> dataLines = lines.sublist(1);
         dataLines.removeWhere((line) => line.trim().isEmpty);
@@ -123,9 +106,9 @@ class _SmvmScreenState extends State<SmvmScreen> {
           _smvmData = {'Error': 'CSV file is empty or malformed'};
         });
       }
-    } else {
+    } catch (e) {
       setState(() {
-        _smvmData = {'Error': 'Failed to fetch data from all sources'};
+        _smvmData = {'Error': e.toString()};
       });
     }
 

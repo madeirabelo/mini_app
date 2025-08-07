@@ -38,6 +38,7 @@ flutter:
     - assets/ignprovincia.json
     - assets/ign_departamento.json
     - assets/ign_municipio.json
+    - assets/smvm_data.csv
 
 flutter_icons:
   android: true
