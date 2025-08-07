@@ -54,7 +54,125 @@ class _SmvmScreenState extends State<SmvmScreen> {
         },
       );
       if (response.statusCode == 200) {
-        final lines = utf8.decode(response.bodyBytes).split("\n");
+        class _SmvmScreenState extends State<SmvmScreen> {
+  Map<String, String>? _smvmData; // Instance variable for currently displayed data
+  bool _isLoading = false;
+  DateTime _selectedDate = DateTime.now(); // Tracks the date for the date picker
+  DateTime? _latestDateInCsv; // Stores the most recent date found in the CSV
+
+  final List<String> _corsProxies = [
+    'https://proxy.cors.sh/',
+    'https://api.allorigins.win/raw?url=',
+    'https://thingproxy.freeboard.io/fetch/',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData(fetchLatest: true); // Initial fetch for the latest data
+  }
+
+  Future<void> _fetchData({DateTime? date, bool fetchLatest = false}) async {
+    setState(() {
+      _isLoading = true;
+      _smvmData = null; // Clear displayed data at the start of any fetch
+    });
+
+    DateTime dateToFetch = DateTime.now(); // Initialize with a default value
+
+    if (!fetchLatest) {
+      dateToFetch = date ?? _selectedDate;
+      dateToFetch = DateTime(dateToFetch.year, dateToFetch.month, 1); // Ensure 1st of the month
+    }
+
+    http.Response? response;
+    final String originalUrl = 'https://infra.datos.gob.ar/catalog/sspm/dataset/57/distribution/57.1/download/indice-salario-minimo-vital-movil-valores-mensuales-pesos-corrientes-desde-1988.csv';
+
+    for (String proxy in _corsProxies) {
+      try {
+        String url = proxy.endsWith('=') ? '$proxy$originalUrl' : '$proxy$originalUrl';
+        print("Trying proxy: $url");
+        response = await http.get(Uri.parse(url));
+        if (response.statusCode == 200) {
+          print("Proxy successful: $proxy");
+          break; // Success, exit the loop
+        }
+      } catch (e) {
+        print("Proxy failed: $proxy. Error: $e");
+        continue; // Failure, try the next proxy
+      }
+    }
+
+    if (response != null && response.statusCode == 200) {
+      final lines = utf8.decode(response.bodyBytes).split("\n");
+      if (lines.length > 1) {
+        List<String> dataLines = lines.sublist(1); // Skip header
+        dataLines.removeWhere((line) => line.trim().isEmpty); // Remove empty lines
+
+        // Determine the latest date in CSV and store it
+        if (dataLines.isNotEmpty) {
+          final latestCsvLine = dataLines.lastWhere((line) => line.split(',').length >= 4, orElse: () => '');
+          if (latestCsvLine.isNotEmpty) {
+            _latestDateInCsv = DateTime.parse(latestCsvLine.split(',')[0]);
+          }
+        }
+
+        String? targetLine;
+        if (fetchLatest) {
+          // Find the last valid data row
+          for (int i = dataLines.length - 1; i >= 0; i--) {
+            if (dataLines[i].split(',').length >= 4) {
+              targetLine = dataLines[i];
+              break;
+            }
+          }
+        } else {
+          final formattedDate = DateFormat('yyyy-MM-dd').format(dateToFetch);
+          targetLine = dataLines.firstWhere((line) => line.startsWith(formattedDate), orElse: () => 'No data for this date');
+        }
+
+        if (targetLine != null && targetLine != 'No data for this date') {
+          final values = targetLine.split(',');
+          if (values.length >= 4) {
+            setState(() {
+              _smvmData = { // Update instance variable
+                'Data': values[0],
+                'SMVM Mensual': values[1],
+                'SMVM Diario': values[2],
+                'SMVM Hora': values[3],
+              };
+              // Only update _selectedDate if fetching latest or a specific date was provided
+              // But don't update _selectedDate when fetching latest to preserve date picker functionality
+              if (date != null) {
+                _selectedDate = DateTime.parse(values[0]);
+              }
+            });
+          } else {
+            setState(() {
+              _smvmData = {'Error': 'Invalid data format for selected date'};
+            });
+          }
+        } else {
+          setState(() {
+            _smvmData = {'Error': 'No data available for the selected date'};
+          });
+        }
+      } else {
+        setState(() {
+          _smvmData = {'Error': 'CSV file is empty or malformed'};
+        });
+      }
+    } else {
+      setState(() {
+        _smvmData = {'Error': 'Failed to fetch data from all sources'};
+      });
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+}
         if (lines.length > 1) {
           List<String> dataLines = lines.sublist(1); // Skip header
           dataLines.removeWhere((line) => line.trim().isEmpty); // Remove empty lines
