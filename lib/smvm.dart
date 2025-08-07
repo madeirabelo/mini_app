@@ -194,16 +194,19 @@ class _SmvmScreenState extends State<SmvmScreen> {
             if (_smvmData!.containsKey('Error'))
               Text('Error: ${_smvmData!['Error']}')
             else
-              Center(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildCopyableRow('SMVM Mensual', _smvmData!['SMVM Mensual']?.replaceAll('.', ',') ?? ''),
-                    _buildCopyableRow('SMVM Diario', _smvmData!['SMVM Diario'] != null ? (double.tryParse(_smvmData!['SMVM Diario']!)?.toStringAsFixed(1) ?? _smvmData!['SMVM Diario']!).replaceAll('.', ',') : ''),
-                    _buildCopyableRow('SMVM Hora', _smvmData!['SMVM Hora']?.replaceAll('.', ',') ?? ''),
-                    Text('Data : ${_smvmData!['Data']}', style: TextStyle(fontFamily: 'monospace')),
-                  ],
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildCopyableRow('SMVM Mensual', _smvmData!['SMVM Mensual']?.replaceAll('.', ',') ?? ''),
+                      _buildCopyableRow('SMVM Diario', _smvmData!['SMVM Diario'] != null ? (double.tryParse(_smvmData!['SMVM Diario']!)?.toStringAsFixed(1) ?? _smvmData!['SMVM Diario']!).replaceAll('.', ',') : ''),
+                      _buildCopyableRow('SMVM Hora', _smvmData!['SMVM Hora']?.replaceAll('.', ',') ?? ''),
+                      Text('Data : ${_smvmData!['Data']}', style: TextStyle(fontFamily: 'monospace')),
+                    ],
+                  ),
+                ],
               ),
           Spacer(),
           _buildCopyableRow('Source', 'https://infra.datos.gob.ar/catalog/sspm/dataset/57/distribution/57.1/download/indice-salario-minimo-vital-movil-valores-mensuales-pesos-corrientes-desde-1988.csv'),
