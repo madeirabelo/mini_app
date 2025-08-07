@@ -58,12 +58,22 @@ class MyApp extends StatelessWidget {
           primary: Colors.deepPurple,
           secondary: Colors.tealAccent,
         ),
-        textTheme: GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme).apply(bodyColor: Colors.white),
+        textTheme: GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme).apply(
+          bodyColor: Colors.white.withOpacity(0.9),
+          displayColor: Colors.white,
+        ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
+            foregroundColor: Colors.white, // Explicitly set lighter text color
+            backgroundColor: Colors.deepPurple,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
+            textStyle: GoogleFonts.poppins(
+              fontSize: 16, // A bit bigger
+              fontWeight: FontWeight.w500,
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
           ),
         ),
       ),
