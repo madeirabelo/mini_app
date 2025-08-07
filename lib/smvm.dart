@@ -196,7 +196,7 @@ class _SmvmScreenState extends State<SmvmScreen> {
             else
               Center(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildCopyableRow('SMVM Mensual', _smvmData!['SMVM Mensual']?.replaceAll('.', ',') ?? ''),
                     _buildCopyableRow('SMVM Diario', _smvmData!['SMVM Diario'] != null ? (double.tryParse(_smvmData!['SMVM Diario']!)?.toStringAsFixed(1) ?? _smvmData!['SMVM Diario']!).replaceAll('.', ',') : ''),
