@@ -105,7 +105,9 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
         double convertedAmount = amountInBase * _rates[toCurrencyCode]!;
         String formattedValue;
 
-        if (toCurrencyCode == 'USD' || toCurrencyCode == 'EUR') {
+        if (convertedAmount > 1000) {
+          formattedValue = NumberFormat('#,##0', 'en_US').format(convertedAmount).replaceAll(',', ' ');
+        } else if (toCurrencyCode == 'USD' || toCurrencyCode == 'EUR') {
           formattedValue = formatTwoDecimals.format(convertedAmount).replaceAll(',', ' ');
         } else {
           formattedValue = formatStandard.format(convertedAmount).replaceAll(',', ' ');
