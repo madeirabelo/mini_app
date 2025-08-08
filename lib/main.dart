@@ -6,7 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:yaml/yaml.dart';
-import 'currency.dart';
+import 'currency_exchange.dart';
 import 'smvm.dart';
 import 'dart:async';
 import 'maps_page.dart';
@@ -288,7 +288,7 @@ class _HomePageState extends State<HomePage> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => CurrencyApp()),
+                        MaterialPageRoute(builder: (context) => CurrencyExchangeApp()),
                       );
                     },
                   ),
