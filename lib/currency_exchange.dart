@@ -5,6 +5,39 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 
+class ThousandsSeparatorInputFormatter extends TextInputFormatter {
+  static const separator = ' '; // Change this to ',' for other locales
+
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    // Short-circuit if the new value is empty
+    if (newValue.text.length == 0) {
+      return newValue.copyWith(text: '');
+    }
+
+    // Handle case of deleting separator
+    String oldValueText = oldValue.text.replaceAll(separator, '');
+    String newValueText = newValue.text.replaceAll(separator, '');
+
+    if (oldValue.text.endsWith(separator) && oldValue.text.length > newValue.text.length) {
+      newValueText = newValueText.substring(0, newValueText.length - 1);
+    }
+
+    // Try to parse the string as a number
+    if (double.tryParse(newValueText) == null) {
+      return oldValue;
+    }
+
+    final f = NumberFormat('# ###');
+    String newText = f.format(double.parse(newValueText));
+
+    return newValue.copyWith(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newText.length),
+    );
+  }
+}
+
 class CurrencyExchangeApp extends StatefulWidget {
   @override
   _CurrencyExchangeAppState createState() => _CurrencyExchangeAppState();
@@ -70,7 +103,9 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
       return;
     }
 
-    final format = NumberFormat.decimalPattern('fr_FR'); // French locale uses spaces for grouping
+    final formatWithDecimal = NumberFormat.decimalPattern('fr_FR');
+    final formatTwoDecimals = NumberFormat('#,##0.00', 'fr_FR');
+
     double amount = double.tryParse(value.replaceAll(' ', '')) ?? 0.0;
     String fromCurrencyCode = _currencies[index].code;
 
@@ -88,7 +123,12 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
       String toCurrencyCode = _currencies[i].code;
       if (_rates[toCurrencyCode] == null) continue;
       double convertedAmount = amountInBase * _rates[toCurrencyCode]!;
-      _currencies[i].controller.text = format.format(convertedAmount);
+
+      if (toCurrencyCode == 'USD' || toCurrencyCode == 'EUR') {
+        _currencies[i].controller.text = formatTwoDecimals.format(convertedAmount);
+      } else {
+        _currencies[i].controller.text = formatWithDecimal.format(convertedAmount);
+      }
     }
   }
 
@@ -120,7 +160,11 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
                               width: 200,
                               child: TextField(
                                 controller: _currencies[index].controller,
-                                keyboardType: TextInputType.number,
+                                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(RegExp(r'[0-9 ]')),
+                                  ThousandsSeparatorInputFormatter(),
+                                ],
                                 decoration: InputDecoration(
                                   border: OutlineInputBorder(),
                                 ),
