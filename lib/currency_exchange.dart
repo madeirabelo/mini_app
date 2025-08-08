@@ -12,17 +12,19 @@ class CurrencyExchangeApp extends StatefulWidget {
 
 class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
   Map<String, double> _rates = {};
-  final List<Currency> _currencies = [
+  List<Currency> _currencies = [
     Currency('USD'),
     Currency('EUR'),
     Currency('ARS'),
     Currency('PYG'),
     Currency('BRL'),
     Currency('UYU'),
-    Currency('Ad-hoc'),
   ];
   final String _baseCurrency = 'USD';
   bool _isUpdating = false;
+
+  List<String> _allApiCurrencies = [];
+  String? _selectedNewCurrency;
 
   @override
   void initState() {
@@ -41,6 +43,10 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
     if (ratesString != null) {
       setState(() {
         _rates = Map<String, double>.from(json.decode(ratesString));
+        _allApiCurrencies = _rates.keys.toList()..sort();
+        if (_allApiCurrencies.isNotEmpty) {
+          _selectedNewCurrency = _allApiCurrencies[0];
+        }
       });
     }
   }
@@ -54,6 +60,10 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
         await prefs.setString('rates', json.encode(data['rates']));
         setState(() {
           _rates = Map<String, double>.from(data['rates']);
+          _allApiCurrencies = _rates.keys.toList()..sort();
+          if (_allApiCurrencies.isNotEmpty) {
+            _selectedNewCurrency = _allApiCurrencies[0];
+          }
         });
       } else {
         print('Failed to load exchange rates from API');
@@ -75,11 +85,9 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
       return;
     }
 
-    // Use en_US locale (dot for decimal) and then replace comma with space for thousands.
     final formatStandard = NumberFormat('#,##0.###', 'en_US');
     final formatTwoDecimals = NumberFormat('#,##0.00', 'en_US');
 
-    // Clean the input value, allowing for a dot or comma as decimal separator.
     final cleanValue = value.replaceAll(' ', '').replaceAll(',', '.');
     double amount = double.tryParse(cleanValue) ?? 0.0;
     String fromCurrencyCode = _currencies[index].code;
@@ -124,6 +132,14 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
     _isUpdating = false;
   }
 
+  void _addCurrency() {
+    if (_selectedNewCurrency != null && !_currencies.any((c) => c.code == _selectedNewCurrency)) {
+      setState(() {
+        _currencies.add(Currency(_selectedNewCurrency!));
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -134,12 +150,41 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
           ? Center(child: CircularProgressIndicator())
           : Column(
               children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButton<String>(
+                          isExpanded: true,
+                          value: _selectedNewCurrency,
+                          items: _allApiCurrencies.map((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              _selectedNewCurrency = newValue;
+                            });
+                          },
+                        ),
+                      ),
+                      SizedBox(width: 16),
+                      ElevatedButton(
+                        onPressed: _addCurrency,
+                        child: Text('Add'),
+                      ),
+                    ],
+                  ),
+                ),
                 Expanded(
                   child: ListView.builder(
                     itemCount: _currencies.length,
                     itemBuilder: (context, index) {
                       return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
