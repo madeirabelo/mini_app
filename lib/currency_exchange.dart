@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
 
 class CurrencyExchangeApp extends StatefulWidget {
   @override
@@ -69,7 +70,8 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
       return;
     }
 
-    double amount = double.tryParse(value) ?? 0.0;
+    final format = NumberFormat.decimalPattern('fr_FR'); // French locale uses spaces for grouping
+    double amount = double.tryParse(value.replaceAll(' ', '')) ?? 0.0;
     String fromCurrencyCode = _currencies[index].code;
 
     double amountInBase = 0;
@@ -86,7 +88,7 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
       String toCurrencyCode = _currencies[i].code;
       if (_rates[toCurrencyCode] == null) continue;
       double convertedAmount = amountInBase * _rates[toCurrencyCode]!;
-      _currencies[i].controller.text = convertedAmount.toStringAsFixed(2);
+      _currencies[i].controller.text = format.format(convertedAmount);
     }
   }
 
