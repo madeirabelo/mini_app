@@ -85,14 +85,17 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
                     itemCount: _currencies.length,
                     itemBuilder: (context, index) {
                       return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
                         child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
                             SizedBox(
                               width: 80,
                               child: Text(_currencies[index].code, style: TextStyle(fontSize: 16.0)),
                             ),
-                            Expanded(
+                            SizedBox(width: 16),
+                            SizedBox(
+                              width: 200, // Set a fixed width for the input box
                               child: TextField(
                                 controller: _currencies[index].controller,
                                 keyboardType: TextInputType.number,
