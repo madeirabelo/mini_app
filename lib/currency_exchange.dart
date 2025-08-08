@@ -5,6 +5,30 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 
+// Custom TextInputFormatter to add thousand separators (spaces)
+class ThousandsFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    final text = newValue.text.replaceAll(' ', '');
+    if (text.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+
+    final number = int.tryParse(text);
+    if (number == null) {
+      return oldValue;
+    }
+
+    final formatter = NumberFormat('# ###', 'es_AR');
+    final newText = formatter.format(number);
+
+    return newValue.copyWith(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newText.length),
+    );
+  }
+}
+
 class CurrencyExchangeApp extends StatefulWidget {
   @override
   _CurrencyExchangeAppState createState() => _CurrencyExchangeAppState();
@@ -12,7 +36,7 @@ class CurrencyExchangeApp extends StatefulWidget {
 
 class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
   Map<String, double> _rates = {};
-  List<Currency> _currencies = [
+  final List<Currency> _currencies = [
     Currency('USD'),
     Currency('EUR'),
     Currency('ARS'),
@@ -21,7 +45,7 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
     Currency('UYU'),
     Currency('Ad-hoc'),
   ];
-  String _baseCurrency = 'USD';
+  final String _baseCurrency = 'USD';
   bool _isUpdating = false;
 
   @override
@@ -65,7 +89,6 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
 
   void _onCurrencyChanged(int index, String value) {
     if (_isUpdating) return;
-
     _isUpdating = true;
 
     if (value.isEmpty) {
@@ -76,42 +99,49 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
       return;
     }
 
-    final formatStandard = NumberFormat.decimalPattern('es_AR');
+    final formatStandard = NumberFormat('#,##0.##', 'es_AR');
     final formatTwoDecimals = NumberFormat('#,##0.00', 'es_AR');
 
-    double amount = double.tryParse(value.replaceAll(RegExp(r'[ ,.]'), '').replaceFirst(',', '.')) ?? 0.0;
+    final cleanValue = value.replaceAll(' ', '').replaceAll(',', '.');
+    double amount = double.tryParse(cleanValue) ?? 0.0;
     String fromCurrencyCode = _currencies[index].code;
 
     double amountInBase = 0;
-    if (fromCurrencyCode == _baseCurrency) {
-      amountInBase = amount;
-    } else {
-      if (_rates[fromCurrencyCode] == null || _rates[fromCurrencyCode] == 0) {
-        _isUpdating = false;
-        return;
-      }
-      amountInBase = amount / _rates[fromCurrencyCode]!;
-    }
-
-    for (int i = 0; i < _currencies.length; i++) {
-      if (i == index) continue;
-
-      String toCurrencyCode = _currencies[i].code;
-      if (_rates[toCurrencyCode] == null) continue;
-
-      double convertedAmount = amountInBase * _rates[toCurrencyCode]!;
-      String formattedValue;
-
-      if (toCurrencyCode == 'USD' || toCurrencyCode == 'EUR') {
-        formattedValue = formatTwoDecimals.format(convertedAmount);
+    if (_rates.isNotEmpty) {
+      if (fromCurrencyCode == _baseCurrency) {
+        amountInBase = amount;
       } else {
-        formattedValue = formatStandard.format(convertedAmount);
+        if (_rates[fromCurrencyCode] == null || _rates[fromCurrencyCode] == 0) {
+          _isUpdating = false;
+          return;
+        }
+        amountInBase = amount / _rates[fromCurrencyCode]!;
       }
-      _currencies[i].controller.value = TextEditingValue(
-        text: formattedValue,
-        selection: TextSelection.collapsed(offset: formattedValue.length),
-      );
+
+      for (int i = 0; i < _currencies.length; i++) {
+        if (i == index) continue;
+
+        String toCurrencyCode = _currencies[i].code;
+        if (_rates[toCurrencyCode] == null) continue;
+
+        double convertedAmount = amountInBase * _rates[toCurrencyCode]!;
+        String formattedValue;
+
+        if (toCurrencyCode == 'USD' || toCurrencyCode == 'EUR') {
+          formattedValue = formatTwoDecimals.format(convertedAmount);
+        } else {
+          formattedValue = formatStandard.format(convertedAmount);
+        }
+        
+        // Prevent cursor jumping
+        final currentController = _currencies[i].controller;
+        currentController.value = TextEditingValue(
+          text: formattedValue,
+          selection: TextSelection.collapsed(offset: formattedValue.length),
+        );
+      }
     }
+
     _isUpdating = false;
   }
 
@@ -144,6 +174,7 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
                               child: TextField(
                                 controller: _currencies[index].controller,
                                 keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                inputFormatters: [ThousandsFormatter()],
                                 decoration: InputDecoration(
                                   border: OutlineInputBorder(),
                                 ),
