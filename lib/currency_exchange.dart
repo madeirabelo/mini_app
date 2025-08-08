@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 
 class CurrencyExchangeApp extends StatefulWidget {
   @override
@@ -162,16 +163,20 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: <Widget>[
                               SizedBox(
-                                width: 80,
-                                child: DropdownButton<String>(
-                                  isExpanded: true,
-                                  value: _selectedNewCurrency,
-                                  items: _allApiCurrencies.map((String value) {
-                                    return DropdownMenuItem<String>(
-                                      value: value,
-                                      child: Text(value),
-                                    );
-                                  }).toList(),
+                                width: 150,
+                                child: DropdownSearch<String>(
+                                  popupProps: PopupProps.menu(
+                                    showSearchBox: true,
+                                    searchFieldProps: TextFieldProps(
+                                      decoration: InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                        hintText: "Search currency",
+                                      ),
+                                    ),
+                                  ),
+                                  items: _allApiCurrencies,
+                                  selectedItem: _selectedNewCurrency,
                                   onChanged: (String? newValue) {
                                     setState(() {
                                       _selectedNewCurrency = newValue;

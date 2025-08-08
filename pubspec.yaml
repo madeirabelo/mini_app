@@ -21,6 +21,7 @@ dependencies:
   html: ^0.15.6
   google_fonts: ^6.2.1
   shared_preferences: ^2.2.3
+  dropdown_search: ^5.0.6
 
 
 
