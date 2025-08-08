@@ -5,30 +5,6 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 
-// Custom TextInputFormatter to add thousand separators (spaces)
-class ThousandsFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
-    final text = newValue.text.replaceAll(' ', '');
-    if (text.isEmpty) {
-      return newValue.copyWith(text: '');
-    }
-
-    final number = int.tryParse(text);
-    if (number == null) {
-      return oldValue;
-    }
-
-    final formatter = NumberFormat('# ###', 'es_AR');
-    final newText = formatter.format(number);
-
-    return newValue.copyWith(
-      text: newText,
-      selection: TextSelection.collapsed(offset: newText.length),
-    );
-  }
-}
-
 class CurrencyExchangeApp extends StatefulWidget {
   @override
   _CurrencyExchangeAppState createState() => _CurrencyExchangeAppState();
@@ -99,9 +75,11 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
       return;
     }
 
-    final formatStandard = NumberFormat('#,##0.##', 'es_AR');
-    final formatTwoDecimals = NumberFormat('#,##0.00', 'es_AR');
+    // Use en_US locale (dot for decimal) and then replace comma with space for thousands.
+    final formatStandard = NumberFormat('#,##0.###', 'en_US');
+    final formatTwoDecimals = NumberFormat('#,##0.00', 'en_US');
 
+    // Clean the input value, allowing for a dot or comma as decimal separator.
     final cleanValue = value.replaceAll(' ', '').replaceAll(',', '.');
     double amount = double.tryParse(cleanValue) ?? 0.0;
     String fromCurrencyCode = _currencies[index].code;
@@ -128,12 +106,11 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
         String formattedValue;
 
         if (toCurrencyCode == 'USD' || toCurrencyCode == 'EUR') {
-          formattedValue = formatTwoDecimals.format(convertedAmount);
+          formattedValue = formatTwoDecimals.format(convertedAmount).replaceAll(',', ' ');
         } else {
-          formattedValue = formatStandard.format(convertedAmount);
+          formattedValue = formatStandard.format(convertedAmount).replaceAll(',', ' ');
         }
         
-        // Prevent cursor jumping
         final currentController = _currencies[i].controller;
         currentController.value = TextEditingValue(
           text: formattedValue,
@@ -174,7 +151,6 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
                               child: TextField(
                                 controller: _currencies[index].controller,
                                 keyboardType: TextInputType.numberWithOptions(decimal: true),
-                                inputFormatters: [ThousandsFormatter()],
                                 decoration: InputDecoration(
                                   border: OutlineInputBorder(),
                                 ),
