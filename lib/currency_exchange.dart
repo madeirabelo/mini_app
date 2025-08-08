@@ -77,32 +77,64 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
       ),
       body: _rates.isEmpty
           ? Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: _currencies.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                  child: Row(
-                    children: <Widget>[
-                      SizedBox(
-                        width: 80,
-                        child: Text(_currencies[index].code, style: TextStyle(fontSize: 16.0)),
-                      ),
-                      Expanded(
-                        child: TextField(
-                          controller: _currencies[index].controller,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(),
-                          ),
-                          onChanged: (value) => _onCurrencyChanged(index, value),
+          : Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: _currencies.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                        child: Row(
+                          children: <Widget>[
+                            SizedBox(
+                              width: 80,
+                              child: Text(_currencies[index].code, style: TextStyle(fontSize: 16.0)),
+                            ),
+                            Expanded(
+                              child: TextField(
+                                controller: _currencies[index].controller,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                ),
+                                onChanged: (value) => _onCurrencyChanged(index, value),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
-                );
-              },
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: _buildCopyableRow('Source', 'https://api.exchangerate-api.com/v4/latest/USD'),
+                ),
+              ],
             ),
+    );
+  }
+
+  Widget _buildCopyableRow(String label, String value) {
+    return Row(
+      children: [
+        Text('$label : $value', style: TextStyle(fontFamily: 'monospace')),
+        SizedBox(width: 8),
+        IconButton(
+          icon: Icon(Icons.copy, size: 16.0),
+          onPressed: () => _copyToClipboard(value),
+          padding: EdgeInsets.zero,
+          constraints: BoxConstraints(),
+        ),
+      ],
+    );
+  }
+
+  void _copyToClipboard(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Copied to clipboard')),
     );
   }
 }
