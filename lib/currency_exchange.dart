@@ -5,39 +5,6 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 
-class ThousandsSeparatorInputFormatter extends TextInputFormatter {
-  static const separator = ' '; // Change this to ',' for other locales
-
-  @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
-    // Short-circuit if the new value is empty
-    if (newValue.text.length == 0) {
-      return newValue.copyWith(text: '');
-    }
-
-    // Handle case of deleting separator
-    String oldValueText = oldValue.text.replaceAll(separator, '');
-    String newValueText = newValue.text.replaceAll(separator, '');
-
-    if (oldValue.text.endsWith(separator) && oldValue.text.length > newValue.text.length) {
-      newValueText = newValueText.substring(0, newValueText.length - 1);
-    }
-
-    // Try to parse the string as a number
-    if (double.tryParse(newValueText) == null) {
-      return oldValue;
-    }
-
-    final f = NumberFormat('# ###');
-    String newText = f.format(double.parse(newValueText));
-
-    return newValue.copyWith(
-      text: newText,
-      selection: TextSelection.collapsed(offset: newText.length),
-    );
-  }
-}
-
 class CurrencyExchangeApp extends StatefulWidget {
   @override
   _CurrencyExchangeAppState createState() => _CurrencyExchangeAppState();
@@ -55,6 +22,7 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
     Currency('Ad-hoc'),
   ];
   String _baseCurrency = 'USD';
+  bool _isUpdating = false;
 
   @override
   void initState() {
@@ -96,24 +64,32 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
   }
 
   void _onCurrencyChanged(int index, String value) {
+    if (_isUpdating) return;
+
+    _isUpdating = true;
+
     if (value.isEmpty) {
       for (var currency in _currencies) {
         currency.controller.clear();
       }
+      _isUpdating = false;
       return;
     }
 
-    final formatWithDecimal = NumberFormat.decimalPattern('fr_FR');
-    final formatTwoDecimals = NumberFormat('#,##0.00', 'fr_FR');
+    final formatStandard = NumberFormat.decimalPattern('es_AR');
+    final formatTwoDecimals = NumberFormat('#,##0.00', 'es_AR');
 
-    double amount = double.tryParse(value.replaceAll(' ', '')) ?? 0.0;
+    double amount = double.tryParse(value.replaceAll(RegExp(r'[ ,.]'), '').replaceFirst(',', '.')) ?? 0.0;
     String fromCurrencyCode = _currencies[index].code;
 
     double amountInBase = 0;
     if (fromCurrencyCode == _baseCurrency) {
       amountInBase = amount;
     } else {
-      if (_rates[fromCurrencyCode] == null || _rates[fromCurrencyCode] == 0) return;
+      if (_rates[fromCurrencyCode] == null || _rates[fromCurrencyCode] == 0) {
+        _isUpdating = false;
+        return;
+      }
       amountInBase = amount / _rates[fromCurrencyCode]!;
     }
 
@@ -122,14 +98,21 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
 
       String toCurrencyCode = _currencies[i].code;
       if (_rates[toCurrencyCode] == null) continue;
+
       double convertedAmount = amountInBase * _rates[toCurrencyCode]!;
+      String formattedValue;
 
       if (toCurrencyCode == 'USD' || toCurrencyCode == 'EUR') {
-        _currencies[i].controller.text = formatTwoDecimals.format(convertedAmount);
+        formattedValue = formatTwoDecimals.format(convertedAmount);
       } else {
-        _currencies[i].controller.text = formatWithDecimal.format(convertedAmount);
+        formattedValue = formatStandard.format(convertedAmount);
       }
+      _currencies[i].controller.value = TextEditingValue(
+        text: formattedValue,
+        selection: TextSelection.collapsed(offset: formattedValue.length),
+      );
     }
+    _isUpdating = false;
   }
 
   @override
@@ -161,10 +144,6 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
                               child: TextField(
                                 controller: _currencies[index].controller,
                                 keyboardType: TextInputType.numberWithOptions(decimal: true),
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.allow(RegExp(r'[0-9 ]')),
-                                  ThousandsSeparatorInputFormatter(),
-                                ],
                                 decoration: InputDecoration(
                                   border: OutlineInputBorder(),
                                 ),
