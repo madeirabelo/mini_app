@@ -8,40 +8,65 @@ class CurrencyExchangeApp extends StatefulWidget {
 }
 
 class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
-  final List<String> _currencies = ['USD', 'EUR', 'ARS', 'PYG', 'BRL', 'UYU'];
-  String _fromCurrency = 'USD';
-  String _toCurrency = 'EUR';
-  double _rate = 0.0;
-  double _amount = 1.0;
-  double _convertedAmount = 0.0;
+  Map<String, double> _rates = {};
+  List<Currency> _currencies = [
+    Currency('USD'),
+    Currency('EUR'),
+    Currency('ARS'),
+    Currency('PYG'),
+    Currency('BRL'),
+    Currency('UYU'),
+    Currency('Ad-hoc'),
+  ];
+  String _baseCurrency = 'USD';
 
   @override
   void initState() {
     super.initState();
-    _fetchExchangeRate();
+    _fetchRates();
   }
 
-  Future<void> _fetchExchangeRate() async {
+  Future<void> _fetchRates() async {
     try {
-      final response = await http.get(Uri.parse('https://api.exchangerate-api.com/v4/latest/$_fromCurrency'));
+      final response = await http.get(Uri.parse('https://api.exchangerate-api.com/v4/latest/$_baseCurrency'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
-          _rate = data['rates'][_toCurrency];
-          _convert();
+          _rates = Map<String, double>.from(data['rates']);
         });
       } else {
-        throw Exception('Failed to load exchange rate');
+        throw Exception('Failed to load exchange rates');
       }
     } catch (e) {
       print(e);
     }
   }
 
-  void _convert() {
-    setState(() {
-      _convertedAmount = _amount * _rate;
-    });
+  void _onCurrencyChanged(int index, String value) {
+    if (value.isEmpty) {
+      for (var currency in _currencies) {
+        currency.controller.clear();
+      }
+      return;
+    }
+
+    double amount = double.tryParse(value) ?? 0.0;
+    String fromCurrencyCode = _currencies[index].code;
+
+    double amountInBase = 0;
+    if (fromCurrencyCode == _baseCurrency) {
+      amountInBase = amount;
+    } else {
+      amountInBase = amount / _rates[fromCurrencyCode]!;
+    }
+
+    for (int i = 0; i < _currencies.length; i++) {
+      if (i == index) continue;
+
+      String toCurrencyCode = _currencies[i].code;
+      double convertedAmount = amountInBase * _rates[toCurrencyCode]!;
+      _currencies[i].controller.text = convertedAmount.toStringAsFixed(2);
+    }
   }
 
   @override
@@ -50,74 +75,41 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
       appBar: AppBar(
         title: Text('Currency Converter'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: TextField(
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: 'Amount',
-                    ),
-                    onChanged: (value) {
-                      setState(() {
-                        _amount = double.tryParse(value) ?? 0.0;
-                        _convert();
-                      });
-                    },
+      body: _rates.isEmpty
+          ? Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: _currencies.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  child: Row(
+                    children: <Widget>[
+                      SizedBox(
+                        width: 80,
+                        child: Text(_currencies[index].code, style: TextStyle(fontSize: 16.0)),
+                      ),
+                      Expanded(
+                        child: TextField(
+                          controller: _currencies[index].controller,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                          ),
+                          onChanged: (value) => _onCurrencyChanged(index, value),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                SizedBox(width: 16.0),
-                DropdownButton<String>(
-                  value: _fromCurrency,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _fromCurrency = newValue!;
-                      _fetchExchangeRate();
-                    });
-                  },
-                  items: _currencies.map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                ),
-              ],
+                );
+              },
             ),
-            SizedBox(height: 16.0),
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: Text(
-                    _convertedAmount.toStringAsFixed(2),
-                    style: TextStyle(fontSize: 24.0),
-                  ),
-                ),
-                SizedBox(width: 16.0),
-                DropdownButton<String>(
-                  value: _toCurrency,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _toCurrency = newValue!;
-                      _fetchExchangeRate();
-                    });
-                  },
-                  items: _currencies.map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
     );
   }
+}
+
+class Currency {
+  String code;
+  TextEditingController controller = TextEditingController();
+
+  Currency(this.code);
 }
