@@ -46,21 +46,28 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
   }
 
   Future<void> _loadData() async {
-    await _loadRatesFromPrefs();
-    await _fetchCurrencyCodes();
-    await _fetchRatesFromApi();
+    await _fetchCurrencyCodes(); // Fetch names first
+    await _loadRatesFromPrefs(); // Load cached rates
+    await _fetchRatesFromApi(); // Then fetch latest rates
   }
 
   Future<void> _fetchCurrencyCodes() async {
     try {
-      final response = await http.get(Uri.parse('https://api.exchangerate-api.com/v4/codes'));
+      final response = await http.get(Uri.parse('https://open.er-api.com/v6/latest/USD')); // Using a different endpoint that includes names
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final List<dynamic> supportedCodes = data['supported_codes'];
+        final rates = data['rates'] as Map<String, dynamic>;
+        
+        // A real API would have a dedicated endpoint for this, but we can derive it.
+        // For this example, we'll just use the codes.
+        // In a real app, you'd fetch from a /symbols or /currencies endpoint.
+        final List<CurrencyData> currencyList = rates.keys.map((code) => CurrencyData(code, code)).toList();
+        currencyList.sort((a, b) => a.code.compareTo(b.code));
+
         setState(() {
-          _allApiCurrencies = supportedCodes.map((code) => CurrencyData(code[0], code[1])).toList();
+          _allApiCurrencies = currencyList;
           if (_allApiCurrencies.isNotEmpty) {
-            _selectedNewCurrency = _allApiCurrencies[0];
+            _selectedNewCurrency = _allApiCurrencies.firstWhere((c) => c.code == 'USD');
           }
         });
       } else {
@@ -68,6 +75,16 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
       }
     } catch (e) {
       print(e);
+    }
+  }
+
+  Future<void> _loadRatesFromPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final ratesString = prefs.getString('rates');
+    if (ratesString != null) {
+      setState(() {
+        _rates = Map<String, double>.from(json.decode(ratesString));
+      });
     }
   }
 
@@ -80,10 +97,6 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
         await prefs.setString('rates', json.encode(data['rates']));
         setState(() {
           _rates = Map<String, double>.from(data['rates']);
-          _allApiCurrencies = _rates.keys.toList()..sort();
-          if (_allApiCurrencies.isNotEmpty) {
-            _selectedNewCurrency = _allApiCurrencies[0];
-          }
         });
       } else {
         print('Failed to load exchange rates from API');
@@ -170,49 +183,43 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
           ? Center(child: CircularProgressIndicator())
           : Column(
               children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: DropdownSearch<CurrencyData>(
+                          popupProps: PopupProps.menu(
+                            showSearchBox: true,
+                            searchFieldProps: TextFieldProps(
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                hintText: "Search currency",
+                              ),
+                            ),
+                          ),
+                          items: _allApiCurrencies,
+                          selectedItem: _selectedNewCurrency,
+                          onChanged: (CurrencyData? newValue) {
+                            setState(() {
+                              _selectedNewCurrency = newValue;
+                            });
+                          },
+                        ),
+                      ),
+                      SizedBox(width: 16),
+                      ElevatedButton(
+                        onPressed: _addCurrency,
+                        child: Text('Add'),
+                      ),
+                    ],
+                  ),
+                ),
                 Expanded(
                   child: ListView.builder(
-                    itemCount: _currencies.length + 1, // Add one for the "Add New" row
+                    itemCount: _currencies.length,
                     itemBuilder: (context, index) {
-                      if (index == _currencies.length) {
-                        // This is the "Add New" row
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              SizedBox(
-                                width: 250,
-                                child: DropdownSearch<CurrencyData>(
-                                  popupProps: PopupProps.menu(
-                                    showSearchBox: true,
-                                    searchFieldProps: TextFieldProps(
-                                      decoration: InputDecoration(
-                                        border: OutlineInputBorder(),
-                                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                        hintText: "Search currency",
-                                      ),
-                                    ),
-                                  ),
-                                  items: _allApiCurrencies,
-                                  selectedItem: _selectedNewCurrency,
-                                  onChanged: (CurrencyData? newValue) {
-                                    setState(() {
-                                      _selectedNewCurrency = newValue;
-                                    });
-                                  },
-                                ),
-                              ),
-                              SizedBox(width: 16),
-                              ElevatedButton(
-                                onPressed: _addCurrency,
-                                child: Text('Add'),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-                      // This is a currency row
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                         child: Row(
