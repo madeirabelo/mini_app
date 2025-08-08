@@ -6,6 +6,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 
+class CurrencyData {
+  final String code;
+  final String name;
+
+  CurrencyData(this.code, this.name);
+
+  @override
+  String toString() {
+    return '$code - $name';
+  }
+}
+
 class CurrencyExchangeApp extends StatefulWidget {
   @override
   _CurrencyExchangeAppState createState() => _CurrencyExchangeAppState();
@@ -24,31 +36,38 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
   final String _baseCurrency = 'USD';
   bool _isUpdating = false;
 
-  List<String> _allApiCurrencies = [];
-  String? _selectedNewCurrency;
+  List<CurrencyData> _allApiCurrencies = [];
+  CurrencyData? _selectedNewCurrency;
 
   @override
   void initState() {
     super.initState();
-    _loadRates();
+    _loadData();
   }
 
-  Future<void> _loadRates() async {
+  Future<void> _loadData() async {
     await _loadRatesFromPrefs();
+    await _fetchCurrencyCodes();
     await _fetchRatesFromApi();
   }
 
-  Future<void> _loadRatesFromPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    final ratesString = prefs.getString('rates');
-    if (ratesString != null) {
-      setState(() {
-        _rates = Map<String, double>.from(json.decode(ratesString));
-        _allApiCurrencies = _rates.keys.toList()..sort();
-        if (_allApiCurrencies.isNotEmpty) {
-          _selectedNewCurrency = _allApiCurrencies[0];
-        }
-      });
+  Future<void> _fetchCurrencyCodes() async {
+    try {
+      final response = await http.get(Uri.parse('https://api.exchangerate-api.com/v4/codes'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List<dynamic> supportedCodes = data['supported_codes'];
+        setState(() {
+          _allApiCurrencies = supportedCodes.map((code) => CurrencyData(code[0], code[1])).toList();
+          if (_allApiCurrencies.isNotEmpty) {
+            _selectedNewCurrency = _allApiCurrencies[0];
+          }
+        });
+      } else {
+        print('Failed to load currency codes');
+      }
+    } catch (e) {
+      print(e);
     }
   }
 
@@ -134,9 +153,9 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
   }
 
   void _addCurrency() {
-    if (_selectedNewCurrency != null && !_currencies.any((c) => c.code == _selectedNewCurrency)) {
+    if (_selectedNewCurrency != null && !_currencies.any((c) => c.code == _selectedNewCurrency!.code)) {
       setState(() {
-        _currencies.add(Currency(_selectedNewCurrency!));
+        _currencies.add(Currency(_selectedNewCurrency!.code));
       });
     }
   }
@@ -163,8 +182,8 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: <Widget>[
                               SizedBox(
-                                width: 150,
-                                child: DropdownSearch<String>(
+                                width: 250,
+                                child: DropdownSearch<CurrencyData>(
                                   popupProps: PopupProps.menu(
                                     showSearchBox: true,
                                     searchFieldProps: TextFieldProps(
@@ -177,7 +196,7 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
                                   ),
                                   items: _allApiCurrencies,
                                   selectedItem: _selectedNewCurrency,
-                                  onChanged: (String? newValue) {
+                                  onChanged: (CurrencyData? newValue) {
                                     setState(() {
                                       _selectedNewCurrency = newValue;
                                     });
