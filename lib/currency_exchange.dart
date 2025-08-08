@@ -39,6 +39,23 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
   List<CurrencyData> _allApiCurrencies = [];
   CurrencyData? _selectedNewCurrency;
 
+  final Map<String, String> _currencyToCountryMap = {
+    'USD': 'United States',
+    'EUR': 'Eurozone',
+    'JPY': 'Japan',
+    'GBP': 'United Kingdom',
+    'AUD': 'Australia',
+    'CAD': 'Canada',
+    'CHF': 'Switzerland',
+    'CNY': 'China',
+    'SEK': 'Sweden',
+    'NZD': 'New Zealand',
+    'ARS': 'Argentina',
+    'BRL': 'Brazil',
+    'PYG': 'Paraguay',
+    'UYU': 'Uruguay',
+  };
+
   @override
   void initState() {
     super.initState();
@@ -46,22 +63,23 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
   }
 
   Future<void> _loadData() async {
-    await _fetchCurrencyCodes(); // Fetch names first
-    await _loadRatesFromPrefs(); // Load cached rates
-    await _fetchRatesFromApi(); // Then fetch latest rates
+    await _fetchCurrencyCodes();
+    await _loadRatesFromPrefs();
+    await _fetchRatesFromApi();
   }
 
   Future<void> _fetchCurrencyCodes() async {
     try {
-      final response = await http.get(Uri.parse('https://open.er-api.com/v6/latest/USD')); // Using a different endpoint that includes names
+      final response = await http.get(Uri.parse('https://open.er-api.com/v6/latest/USD'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final rates = data['rates'] as Map<String, dynamic>;
-        
-        // A real API would have a dedicated endpoint for this, but we can derive it.
-        // For this example, we'll just use the codes.
-        // In a real app, you'd fetch from a /symbols or /currencies endpoint.
-        final List<CurrencyData> currencyList = rates.keys.map((code) => CurrencyData(code, code)).toList();
+
+        final List<CurrencyData> currencyList = rates.keys.map((code) {
+          final countryName = _currencyToCountryMap[code] ?? code;
+          return CurrencyData(code, countryName);
+        }).toList();
+
         currencyList.sort((a, b) => a.code.compareTo(b.code));
 
         setState(() {
