@@ -150,39 +150,45 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
           ? Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: DropdownButton<String>(
-                          isExpanded: true,
-                          value: _selectedNewCurrency,
-                          items: _allApiCurrencies.map((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          }).toList(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              _selectedNewCurrency = newValue;
-                            });
-                          },
-                        ),
-                      ),
-                      SizedBox(width: 16),
-                      ElevatedButton(
-                        onPressed: _addCurrency,
-                        child: Text('Add'),
-                      ),
-                    ],
-                  ),
-                ),
                 Expanded(
                   child: ListView.builder(
-                    itemCount: _currencies.length,
+                    itemCount: _currencies.length + 1, // Add one for the "Add New" row
                     itemBuilder: (context, index) {
+                      if (index == _currencies.length) {
+                        // This is the "Add New" row
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              SizedBox(
+                                width: 80,
+                                child: DropdownButton<String>(
+                                  isExpanded: true,
+                                  value: _selectedNewCurrency,
+                                  items: _allApiCurrencies.map((String value) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Text(value),
+                                    );
+                                  }).toList(),
+                                  onChanged: (String? newValue) {
+                                    setState(() {
+                                      _selectedNewCurrency = newValue;
+                                    });
+                                  },
+                                ),
+                              ),
+                              SizedBox(width: 16),
+                              ElevatedButton(
+                                onPressed: _addCurrency,
+                                child: Text('Add'),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                      // This is a currency row
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                         child: Row(
