@@ -193,9 +193,26 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
   }
 
   Future<void> _loadData() async {
+    await _loadCurrenciesFromPrefs();
     await _fetchCurrencyCodes();
     await _loadRatesFromPrefs();
     await _fetchRatesFromApi();
+  }
+
+  Future<void> _saveCurrenciesToPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> currencyCodes = _currencies.map((c) => c.code).toList();
+    await prefs.setStringList('user_currencies', currencyCodes);
+  }
+
+  Future<void> _loadCurrenciesFromPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final currencyCodes = prefs.getStringList('user_currencies');
+    if (currencyCodes != null && currencyCodes.isNotEmpty) {
+      setState(() {
+        _currencies = currencyCodes.map((code) => Currency(code)).toList();
+      });
+    }
   }
 
   Future<void> _fetchCurrencyCodes() async {
@@ -318,7 +335,15 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
       setState(() {
         _currencies.add(Currency(_selectedNewCurrency!.code));
       });
+      _saveCurrenciesToPrefs();
     }
+  }
+
+  void _removeCurrency(int index) {
+    setState(() {
+      _currencies.removeAt(index);
+    });
+    _saveCurrenciesToPrefs();
   }
 
   @override
@@ -347,7 +372,7 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
                               ),
                               SizedBox(width: 16),
                               SizedBox(
-                                width: 200,
+                                width: 150,
                                 child: TextField(
                                   controller: _currencies[index].controller,
                                   keyboardType: TextInputType.numberWithOptions(decimal: true),
@@ -357,6 +382,13 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
                                   onChanged: (value) => _onCurrencyChanged(index, value),
                                 ),
                               ),
+                              SizedBox(
+                                width: 50,
+                                child: IconButton(
+                                  icon: Icon(Icons.remove_circle_outline),
+                                  onPressed: () => _removeCurrency(index),
+                                ),
+                              )
                             ],
                           ),
                         );
