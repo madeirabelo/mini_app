@@ -331,67 +331,70 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
           ? Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: DropdownSearch<CurrencyData>(
-                          popupProps: PopupProps.menu(
-                            showSearchBox: true,
-                            searchFieldProps: TextFieldProps(
-                              decoration: InputDecoration(
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                hintText: "Search currency",
-                              ),
-                            ),
-                          ),
-                          items: _allApiCurrencies,
-                          selectedItem: _selectedNewCurrency,
-                          onChanged: (CurrencyData? newValue) {
-                            setState(() {
-                              _selectedNewCurrency = newValue;
-                            });
-                          },
-                        ),
-                      ),
-                      SizedBox(width: 16),
-                      ElevatedButton(
-                        onPressed: _addCurrency,
-                        child: Text('Add'),
-                      ),
-                    ],
-                  ),
-                ),
                 Expanded(
                   child: ListView.builder(
-                    itemCount: _currencies.length,
+                    itemCount: _currencies.length + 1,
                     itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            SizedBox(
-                              width: 80,
-                              child: Text(_currencies[index].code, style: TextStyle(fontSize: 16.0)),
-                            ),
-                            SizedBox(width: 16),
-                            SizedBox(
-                              width: 200,
-                              child: TextField(
-                                controller: _currencies[index].controller,
-                                keyboardType: TextInputType.numberWithOptions(decimal: true),
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(),
-                                ),
-                                onChanged: (value) => _onCurrencyChanged(index, value),
+                      if (index < _currencies.length) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              SizedBox(
+                                width: 80,
+                                child: Text(_currencies[index].code, style: TextStyle(fontSize: 16.0)),
                               ),
-                            ),
-                          ],
-                        ),
-                      );
+                              SizedBox(width: 16),
+                              SizedBox(
+                                width: 200,
+                                child: TextField(
+                                  controller: _currencies[index].controller,
+                                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                  decoration: InputDecoration(
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  onChanged: (value) => _onCurrencyChanged(index, value),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      } else {
+                        return Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: DropdownSearch<CurrencyData>(
+                                  popupProps: PopupProps.menu(
+                                    showSearchBox: true,
+                                    searchFieldProps: TextFieldProps(
+                                      decoration: InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                        hintText: "Search currency",
+                                      ),
+                                    ),
+                                  ),
+                                  items: _allApiCurrencies,
+                                  selectedItem: _selectedNewCurrency,
+                                  onChanged: (CurrencyData? newValue) {
+                                    setState(() {
+                                      _selectedNewCurrency = newValue;
+                                    });
+                                  },
+                                ),
+                              ),
+                              SizedBox(width: 16),
+                              ElevatedButton(
+                                onPressed: _addCurrency,
+                                child: Text('Add'),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
                     },
                   ),
                 ),
