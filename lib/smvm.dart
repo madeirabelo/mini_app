@@ -230,7 +230,9 @@ class _SmvmScreenState extends State<SmvmScreen> {
   Widget _buildCopyableRow(String label, String value) {
     return Row(
       children: [
-        Text('$label : $value', style: TextStyle(fontFamily: 'monospace')),
+        Expanded(
+          child: Text('$label : $value', style: TextStyle(fontFamily: 'monospace')),
+        ),
         SizedBox(width: 8),
         IconButton(
           icon: Icon(Icons.copy, size: 16.0),
