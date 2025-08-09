@@ -247,8 +247,12 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
     final prefs = await SharedPreferences.getInstance();
     final ratesString = prefs.getString('rates');
     if (ratesString != null) {
+      final decodedRates = json.decode(ratesString) as Map<String, dynamic>;
+      final castedRates = decodedRates.map((key, value) {
+        return MapEntry(key, (value as num).toDouble());
+      });
       setState(() {
-        _rates = Map<String, double>.from(json.decode(ratesString));
+        _rates = castedRates;
       });
     }
   }
@@ -258,10 +262,14 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
       final response = await http.get(Uri.parse('https://api.exchangerate-api.com/v4/latest/$_baseCurrency'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        final ratesData = data['rates'] as Map<String, dynamic>;
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('rates', json.encode(data['rates']));
+        await prefs.setString('rates', json.encode(ratesData));
+        final castedRates = ratesData.map((key, value) {
+          return MapEntry(key, (value as num).toDouble());
+        });
         setState(() {
-          _rates = Map<String, double>.from(data['rates']);
+          _rates = castedRates;
         });
       } else {
         print('Failed to load exchange rates from API');

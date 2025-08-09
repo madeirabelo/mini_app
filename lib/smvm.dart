@@ -169,19 +169,20 @@ class _SmvmScreenState extends State<SmvmScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 10.0, // Horizontal spacing between children
+            runSpacing: 10.0, // Vertical spacing between lines
             children: [
               ElevatedButton(
                 onPressed: () => _selectDate(context),
                 child: Text('Select Date'),
               ),
-              SizedBox(width: 10),
               ElevatedButton(
                 onPressed: _fetchLatestData,
                 child: Text('Fetch Latest'),
               ),
-              SizedBox(width: 10),
               Text(
                 displayDate,
                 style: TextStyle(color: dateColor, fontWeight: dateFontWeight),
