@@ -199,14 +199,16 @@ class _SmvmScreenState extends State<SmvmScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildCopyableRow('SMVM Mensual', _smvmData!['SMVM Mensual']?.replaceAll('.', ',') ?? ''),
-                      _buildCopyableRow('SMVM Diario', _smvmData!['SMVM Diario'] != null ? (double.tryParse(_smvmData!['SMVM Diario']!)?.toStringAsFixed(1) ?? _smvmData!['SMVM Diario']!).replaceAll('.', ',') : ''),
-                      _buildCopyableRow('SMVM Hora', _smvmData!['SMVM Hora']?.replaceAll('.', ',') ?? ''),
-                      Text('Data : ${_smvmData!['Data']}', style: TextStyle(fontFamily: 'monospace')),
-                    ],
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildCopyableRow('SMVM Mensual', _smvmData!['SMVM Mensual']?.replaceAll('.', ',') ?? ''),
+                        _buildCopyableRow('SMVM Diario', _smvmData!['SMVM Diario'] != null ? (double.tryParse(_smvmData!['SMVM Diario']!)?.toStringAsFixed(1) ?? _smvmData!['SMVM Diario']!).replaceAll('.', ',') : ''),
+                        _buildCopyableRow('SMVM Hora', _smvmData!['SMVM Hora']?.replaceAll('.', ',') ?? ''),
+                        Text('Data : ${_smvmData!['Data']}', style: TextStyle(fontFamily: 'monospace')),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -230,7 +232,7 @@ class _SmvmScreenState extends State<SmvmScreen> {
   Widget _buildCopyableRow(String label, String value) {
     return Row(
       children: [
-        Expanded(
+        Flexible(
           child: Text('$label : $value', style: TextStyle(fontFamily: 'monospace')),
         ),
         SizedBox(width: 8),
