@@ -362,10 +362,20 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
                         );
                       } else {
                         return Padding(
-                          padding: const EdgeInsets.all(16.0),
+                          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                           child: Row(
-                            children: [
-                              Expanded(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              SizedBox(
+                                width: 80,
+                                child: ElevatedButton(
+                                  onPressed: _addCurrency,
+                                  child: Text('Add'),
+                                ),
+                              ),
+                              SizedBox(width: 16),
+                              SizedBox(
+                                width: 200,
                                 child: DropdownSearch<CurrencyData>(
                                   popupProps: PopupProps.menu(
                                     showSearchBox: true,
@@ -385,11 +395,6 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
                                     });
                                   },
                                 ),
-                              ),
-                              SizedBox(width: 16),
-                              ElevatedButton(
-                                onPressed: _addCurrency,
-                                child: Text('Add'),
                               ),
                             ],
                           ),
