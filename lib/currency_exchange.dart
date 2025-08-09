@@ -456,7 +456,9 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text('$label : $value', style: TextStyle(fontFamily: 'monospace')),
+        Flexible(
+          child: Text('$label : $value', style: TextStyle(fontFamily: 'monospace')),
+        ),
         SizedBox(width: 8),
         IconButton(
           icon: Icon(Icons.copy, size: 16.0),
