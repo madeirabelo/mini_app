@@ -85,7 +85,7 @@ class _CurrencyExchangeAppState extends State<CurrencyExchangeApp> {
     'CDF': 'Congo (DRC)',
     'CRC': 'Costa Rica',
     'HRK': 'Croatia',
-    'CUP':. Cuba',
+    'CUP': 'Cuba',
     'CZK': 'Czech Republic',
     'DKK': 'Denmark',
     'DJF': 'Djibouti',
