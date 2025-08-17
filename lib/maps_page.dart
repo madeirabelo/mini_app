@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'argentina_map.dart';
 import 'argentina_province_map.dart';
+import 'barrios_corrientes_map.dart';
 import 'departamento_map.dart';
 import 'municipio_map.dart';
 
@@ -51,6 +52,16 @@ class MapsPage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => MunicipioMapApp()),
+                );
+              },
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              child: Text('Barrios de Corrientes'),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => BarriosCorrientesMapApp()),
                 );
               },
             ),
